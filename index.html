@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>عيادة د. حمداد هشام</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial;background:#f3f6f8;color:#17202a}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+.login{
+ min-height:100vh;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+ background:linear-gradient(135deg,#087f73,#11a99a)
+}
+.login-box{
+ width:100%;
+ max-width:420px;
+ background:#fff;
+ padding:30px;
+ border-radius:18px;
+ box-shadow:0 15px 40px #0004
+}
+.login-box h1{text-align:center;color:#087f73}
+.login-box p{text-align:center;color:#667085}
+
+label{display:block;font-weight:bold;margin:10px 0 6px}
+input,select,textarea{
+ width:100%;
+ padding:11px;
+ border:1px solid #d0d5dd;
+ border-radius:8px;
+ background:#fff
+}
+textarea{min-height:90px}
+
+.btn{
+ border:0;
+ border-radius:8px;
+ padding:10px 15px
+}
+.primary{background:#087f73;color:#fff}
+.danger{background:#dc2626;color:#fff}
+.gray{background:#e5e7eb;color:#111827}
+
+.login-box .btn{width:100%;margin-top:9px}
+
+.msg{
+ display:none;
+ padding:10px;
+ border-radius:8px;
+ margin:12px 0
+}
+.err{background:#fee2e2;color:#991b1b}
+.ok{background:#dcfce7;color:#166534}
+
+header{
+ background:#087f73;
+ color:#fff;
+ padding:14px 20px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px
+}
+header h1{margin:0;font-size:21px}
+.logout{border:0;background:#dc2626;color:#fff;padding:9px 14px;border-radius:8px}
+
+.layout{display:flex;min-height:calc(100vh - 68px)}
+aside{
+ width:220px;
+ background:#fff;
+ padding:14px;
+ border-left:1px solid #ddd
+}
+.nav{
+ width:100%;
+ padding:12px;
+ border:0;
+ background:#fff;
+ text-align:right;
+ border-radius:8px;
+ margin-bottom:6px
+}
+.nav:hover,.nav.active{
+ background:#dff7f3;
+ color:#087f73;
+ font-weight:bold
+}
+main{flex:1;padding:20px}
+.section{display:none}
+.section.active{display:block}
+
+.title{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+ flex-wrap:wrap;
+ margin-bottom:15px
+}
+.card{
+ background:#fff;
+ border:1px solid #e5e7eb;
+ border-radius:14px;
+ padding:18px;
+ margin-bottom:15px
+}
+
+.stats{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:14px
+}
+.stat{
+ background:#fff;
+ border:1px solid #e5e7eb;
+ border-radius:14px;
+ padding:18px
+}
+.stat strong{
+ display:block;
+ color:#087f73;
+ font-size:28px;
+ margin-top:8px
+}
+
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{
+ padding:10px;
+ border-bottom:1px solid #eee;
+ text-align:right
+}
+th{background:#f8fafc}
+
+.modal{
+ position:fixed;
+ inset:0;
+ background:#0007;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:15px;
+ z-index:50
+}
+.modal-box{
+ background:#fff;
+ width:100%;
+ max-width:800px;
+ max-height:90vh;
+ overflow:auto;
+ border-radius:15px;
+ padding:20px
+}
+.modal-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:center
+}
+.close{
+ border:0;
+ border-radius:50%;
+ width:34px;
+ height:34px
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:12px
+}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:5px;flex-wrap:wrap}
+.small{padding:6px 9px;border:0;border-radius:6px;background:#087f73;color:#fff}
+
+@media(max-width:800px){
+ .layout{display:block}
+ aside{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,1fr)
+ }
+ .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+ main{padding:12px}
+ .grid{grid-template-columns:1fr}
+ .full{grid-column:auto}
+}
+</style>
+</head>
+
+<body>
+
+<div id="loginPage" class="login">
+<div class="login-box">
+
+<h1>🏥 عيادة د. حمداد هشام</h1>
+<p>نظام إدارة العيادة</p>
+
+<div id="loginMsg" class="msg"></div>
+
+<form id="loginForm">
+
+<label>البريد الإلكتروني</label>
+<input id="email" type="email" required>
+
+<label>كلمة المرور</label>
+<input id="password" type="password" required>
+
+<button class="btn primary">تسجيل الدخول</button>
+
+</form>
+
+<button id="register" class="btn gray">
+إنشاء حساب جديد
+</button>
+
+</div>
+</div>
+
+
+<div id="app" class="hidden">
+
+<header>
+<div>
+<h1>🏥 عيادة د. حمداد هشام</h1>
+<small>نظام إدارة العيادة</small>
+</div>
+
+<button id="logout" class="logout">
+تسجيل الخروج
+</button>
+</header>
+
+
+<div class="layout">
+
+<aside>
+
+<button class="nav active" data-page="dashboard">🏠 لوحة التحكم</button>
+<button class="nav" data-page="patients">👥 المرضى</button>
+<button class="nav" data-page="appointments">📅 المواعيد</button>
+<button class="nav" data-page="medical">🩺 الملفات الطبية</button>
+<button class="nav" data-page="prescriptions">💊 الوصفات</button>
+<button class="nav" data-page="invoices">💰 الفواتير</button>
+
+</aside>
+
+
+<main>
+
+<section id="dashboard" class="section active">
+
+<div class="title">
+<h2>لوحة التحكم</h2>
+</div>
+
+<div class="stats">
+
+<div class="stat">
+المرضى
+<strong id="patientsCount">0</strong>
+</div>
+
+<div class="stat">
+المواعيد
+<strong id="appointmentsCount">0</strong>
+</div>
+
+<div class="stat">
+السجلات الطبية
+<strong id="medicalCount">0</strong>
+</div>
+
+<div class="stat">
+الفواتير
+<strong id="invoicesCount">0</strong>
+</div>
+
+</div>
+
+<div class="card">
+<h3>مرحبًا بك د. حمداد هشام</h3>
+<p>
+جميع البيانات يتم حفظها في قاعدة بيانات Supabase المرتبطة بالمشروع.
+</p>
+</div>
+
+</section>
+
+
+<section id="patients" class="section">
+
+<div class="title">
+<h2>👥 المرضى</h2>
+<button id="newPatient" class="btn primary">+ إضافة مريض</button>
+</div>
+
+<div class="card">
+<input id="patientSearch" placeholder="🔎 البحث عن مريض">
+</div>
+
+<div class="card table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>رقم الملف</th>
+<th>الاسم</th>
+<th>الهاتف</th>
+<th>الجنس</th>
+<th>فصيلة الدم</th>
+<th>الإجراءات</th>
+</tr>
+</thead>
+<tbody id="patientsBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+
+<section id="appointments" class="section">
+
+<div class="title">
+<h2>📅 المواعيد</h2>
+<button id="newAppointment" class="btn primary">+ إضافة موعد</button>
+</div>
+
+<div class="card table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>المريض</th>
+<th>التاريخ</th>
+<th>الوقت</th>
+<th>السبب</th>
+<th>الحالة</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody id="appointmentsBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+
+<section id="medical" class="section">
+
+<div class="title">
+<h2>🩺 الملفات الطبية</h2>
+<button id="newMedical" class="btn primary">+ إضافة سجل</button>
+</div>
+
+<div class="card table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>المريض</th>
+<th>التاريخ</th>
+<th>الأعراض</th>
+<th>التشخيص</th>
+<th>العلاج</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody id="medicalBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+
+<section id="prescriptions" class="section">
+
+<div class="title">
+<h2>💊 الوصفات</h2>
+<button id="newPrescription" class="btn primary">+ إضافة وصفة</button>
+</div>
+
+<div class="card table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>المريض</th>
+<th>التاريخ</th>
+<th>الأدوية</th>
+<th>الملاحظات</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody id="prescriptionsBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+
+<section id="invoices" class="section">
+
+<div class="title">
+<h2>💰 الفواتير</h2>
+<button id="newInvoice" class="btn primary">+ إضافة فاتورة</button>
+</div>
+
+<div class="card table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>رقم الفاتورة</th>
+<th>المريض</th>
+<th>التاريخ</th>
+<th>الخدمة</th>
+<th>المبلغ</th>
+<th>الحالة</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody id="invoicesBody"></tbody>
+</table>
+
+</div>
+
+</section>
+
+</main>
+</div>
+</div>
+
+
+<div id="modal" class="modal hidden">
+
+<div class="modal-box">
+
+<div class="modal-head">
+<h2 id="modalTitle"></h2>
+<button id="closeModal" class="close">×</button>
+</div>
+
+<div id="modalContent"></div>
+
+</div>
+</div>
+
+
+<script>
+
+/* =====================================================
+   SUPABASE CONFIGURATION
+   ===================================================== */
+
+/*
+  هذا هو رابط مشروعك.
+*/
+const SUPABASE_URL =
+"https://vafqypkpikcbcgbgoxrf.supabase.co";
+
+
+/*
+  ضع هنا Publishable key الخاص بمشروعك.
+
+  لا تستخدم:
+  sb_secret_
+  service_role
+  JWT Secret
+*/
+
+const SUPABASE_KEY =
+"PUT_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE";
+
+
+const db =
+supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
+
+
+/* =====================================================
+   VARIABLES
+   ===================================================== */
+
+let currentUser = null;
+let patients = [];
+
+
+/* =====================================================
+   HELPERS
+   ===================================================== */
+
+function escapeHTML(value){
+
+ if(value===null || value===undefined)
+  return "";
+
+ return String(value)
+  .replaceAll("&","&amp;")
+  .replaceAll("<","&lt;")
+  .replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;")
+  .replaceAll("'","&#039;");
+
+}
+
+function today(){
+
+ return new Date()
+  .toISOString()
+  .slice(0,10);
+
+}
+
+function showLoginMessage(text,success=false){
+
+ const el=document.getElementById("loginMsg");
+
+ el.textContent=text;
+ el.className="msg "+(success?"ok":"err");
+ el.style.display="block";
+
+}
+
+
+/* =====================================================
+   AUTHENTICATION
+   ===================================================== */
+
+async function start(){
+
+ const {data,error} =
+ await db.auth.getSession();
+
+ if(error){
+
+  showLoginMessage(
+   "خطأ في Supabase: "+error.message
+  );
+
+  return;
+ }
+
+ if(data.session){
+
+  currentUser=data.session.user;
+  showApp();
+
+ }
+
+}
+
+
+function showApp(){
+
+ document
+  .getElementById("loginPage")
+  .classList.add("hidden");
+
+ document
+  .getElementById("app")
+  .classList.remove("hidden");
+
+ loadEverything();
+
+}
+
+
+document
+.getElementById("loginForm")
+.addEventListener("submit",async function(e){
+
+ e.preventDefault();
+
+ const email=
+ document.getElementById("email").value.trim();
+
+ const password=
+ document.getElementById("password").value;
+
+ const {data,error} =
+ await db.auth.signInWithPassword({
+  email,
+  password
+ });
+
+ if(error){
+
+  showLoginMessage(
+   "فشل تسجيل الدخول: "+error.message
+  );
+
+  return;
+ }
+
+ currentUser=data.user;
+
+ showApp();
+
+});
+
+
+document
+.getElementById("register")
+.addEventListener("click",async function(){
+
+ const email=
+ document.getElementById("email").value.trim();
+
+ const password=
+ document.getElementById("password").value;
+
+ if(!email || !password){
+
+  showLoginMessage(
+   "اكتب البريد الإلكتروني وكلمة المرور أولًا."
+  );
+
+  return;
+ }
+
+ if(password.length<6){
+
+  showLoginMessage(
+   "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل."
+  );
+
+  return;
+ }
+
+ const {error} =
+ await db.auth.signUp({
+  email,
+  password
+ });
+
+ if(error){
+
+  showLoginMessage(
+   "فشل إنشاء الحساب: "+error.message
+  );
+
+  return;
+ }
+
+ showLoginMessage(
+  "تم إنشاء الحساب بنجاح. تحقق من بريدك إذا طلب Supabase تأكيد البريد.",
+  true
+ );
+
+});
+
+
+document
+.getElementById("logout")
+.addEventListener("click",async function(){
+
+ await db.auth.signOut();
+
+ currentUser=null;
+
+ document
+  .getElementById("app")
+  .classList.add("hidden");
+
+ document
+  .getElementById("loginPage")
+  .classList.remove("hidden");
+
+});
+
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+document
+.querySelectorAll(".nav")
+.forEach(button=>{
+
+ button.addEventListener("click",()=>{
+
+  document
+   .querySelectorAll(".nav")
+   .forEach(x=>x.classList.remove("active"));
+
+  button.classList.add("active");
+
+  document
+   .querySelectorAll(".section")
+   .forEach(x=>x.classList.remove("active"));
+
+  document
+   .getElementById(button.dataset.page)
+   .classList.add("active");
+
+ });
+
+});
+
+
+/* =====================================================
+   LOAD
+   ===================================================== */
+
+async function loadEverything(){
+
+ await loadPatients();
+ await loadAppointments();
+ await loadMedical();
+ await loadPrescriptions();
+ await loadInvoices();
+
+ updateCounts();
+
+}
+
+
+/* =====================================================
+   PATIENTS
+   ===================================================== */
+
+async function loadPatients(){
+
+ const {data,error}=
+ await db
+  .from("patients")
+  .select("*")
+  .order("created_at",{ascending:false});
+
+ if(error){
+
+  console.error(error);
+  return;
+
+ }
+
+ patients=data||[];
+
+ renderPatients();
+
+}
+
+
+function renderPatients(){
+
+ const body=
+ document.getElementById("patientsBody");
+
+ const q=
+ document
+ .getElementById("patientSearch")
+ .value
+ .toLowerCase();
+
+ const list=
+ patients.filter(p=>
+  String(p.name||"").toLowerCase().includes(q) ||
+  String(p.file_number||"").toLowerCase().includes(q)
+ );
+
+ if(!list.length){
+
+  body.innerHTML=
+  `<tr><td colspan="6">لا توجد بيانات</td></tr>`;
+
+  return;
+ }
+
+ body.innerHTML=list.map(p=>`
+
+ <tr>
+
+ <td>${escapeHTML(p.file_number)}</td>
+
+ <td>${escapeHTML(p.name)}</td>
+
+ <td>${escapeHTML(p.phone)}</td>
+
+ <td>${escapeHTML(p.gender)}</td>
+
+ <td>${escapeHTML(p.blood)}</td>
+
+ <td>
+
+ <div class="actions">
+
+ <button class="small"
+ onclick="editPatient('${p.id}')">
+ تعديل
+ </button>
+
+ <button class="btn danger"
+ onclick="removePatient('${p.id}')">
+ حذف
+ </button>
+
+ </div>
+
+ </td>
+
+ </tr>
+
+ `).join("");
+
+}
+
+
+document
+.getElementById("patientSearch")
+.addEventListener("input",renderPatients);
+
+
+document
+.getElementById("newPatient")
+.addEventListener("click",()=>patientForm());
+
+
+function patientForm(patient=null){
+
+ document.getElementById("modalTitle").textContent=
+ patient?"تعديل مريض":"إضافة مريض";
+
+ document.getElementById("modalContent").innerHTML=`
+
+ <form id="patientForm">
+
+ <div class="grid">
+
+ <div>
+ <label>رقم الملف *</label>
+ <input id="pf" required
+ value="${escapeHTML(patient?.file_number||"")}">
+ </div>
+
+ <div>
+ <label>اسم المريض *</label>
+ <input id="pn" required
+ value="${escapeHTML(patient?.name||"")}">
+ </div>
+
+ <div>
+ <label>الهاتف</label>
+ <input id="pp"
+ value="${escapeHTML(patient?.phone||"")}">
+ </div>
+
+ <div>
+ <label>تاريخ الميلاد</label>
+ <input id="pb" type="date"
+ value="${escapeHTML(patient?.birth||"")}">
+ </div>
+
+ <div>
+ <label>الجنس</label>
+ <select id="pg">
+ <option value="">اختر</option>
+ <option ${patient?.gender==="ذكر"?"selected":""}>ذكر</option>
+ <option ${patient?.gender==="أنثى"?"selected":""}>أنثى</option>
+ </select>
+ </div>
+
+ <div>
+ <label>فصيلة الدم</label>
+ <input id="pbl"
+ value="${escapeHTML(patient?.blood||"")}">
+ </div>
+
+ <div class="full">
+ <label>العنوان</label>
+ <input id="pa"
+ value="${escapeHTML(patient?.address||"")}">
+ </div>
+
+ <div class="full">
+ <label>الحساسيات</label>
+ <textarea id="pal">${escapeHTML(patient?.allergies||"")}</textarea>
+ </div>
+
+ <div class="full">
+ <label>التاريخ المرضي</label>
+ <textarea id="ph">${escapeHTML(patient?.medical_history||"")}</textarea>
+ </div>
+
+ </div>
+
+ <br>
+
+ <button class="btn primary">حفظ</button>
+
+ </form>
+ `;
+
+ openModal();
+
+ document
+ .getElementById("patientForm")
+ .addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  const record={
+   user_id:currentUser.id,
+   file_number:document.getElementById("pf").value.trim(),
+   name:document.getElementById("pn").value.trim(),
+   phone:document.getElementById("pp").value.trim(),
+   birth:document.getElementById("pb").value||null,
+   gender:document.getElementById("pg").value,
+   blood:document.getElementById("pbl").value.trim(),
+   address:document.getElementById("pa").value.trim(),
+   allergies:document.getElementById("pal").value.trim(),
+   medical_history:document.getElementById("ph").value.trim()
+  };
+
+  let result;
+
+  if(patient){
+
+   result=await db
+   .from("patients")
+   .update(record)
+   .eq("id",patient.id);
+
+  }else{
+
+   result=await db
+   .from("patients")
+   .insert(record);
+
+  }
+
+  if(result.error){
+
+   alert(result.error.message);
+   return;
+
+  }
+
+  closeModal();
+  loadEverything();
+
+ });
+
+}
+
+
+window.editPatient=function(id){
+
+ const p=patients.find(x=>x.id===id);
+
+ if(p)patientForm(p);
+
+};
+
+
+window.removePatient=async function(id){
+
+ if(!confirm("هل تريد حذف المريض؟"))
+  return;
+
+ const {error}=await db
+ .from("patients")
+ .delete()
+ .eq("id",id);
+
+ if(error){
+
+  alert(error.message);
+  return;
+
+ }
+
+ loadEverything();
+
+};
+
+
+/* =====================================================
+   APPOINTMENTS
+   ===================================================== */
+
+async function loadAppointments(){
+
+ const {data,error}=await db
+ .from("appointments")
+ .select("*,patients(name)")
+ .order("appointment_date",{ascending:true});
+
+ if(error){
+
+  console.error(error);
+  return;
+
+ }
+
+ const body=
+ document.getElementById("appointmentsBody");
+
+ if(!data?.length){
+
+  body.innerHTML=
+  `<tr><td colspan="6">لا توجد مواعيد</td></tr>`;
+
+  return;
+ }
+
+ body.innerHTML=data.map(a=>`
+
+ <tr>
+
+ <td>${escapeHTML(a.patients?.name)}</td>
+ <td>${escapeHTML(a.appointment_date)}</td>
+ <td>${escapeHTML(a.appointment_time)}</td>
+ <td>${escapeHTML(a.reason)}</td>
+ <td>${escapeHTML(a.status)}</td>
+
+ <td>
+ <button class="btn danger"
+ onclick="removeAppointment('${a.id}')">
+ حذف
+ </button>
+ </td>
+
+ </tr>
+
+ `).join("");
+
+}
+
+
+document
+.getElementById("newAppointment")
+.addEventListener("click",()=>{
+
+ if(!patients.length){
+
+  alert("أضف مريضًا أولًا.");
+  return;
+
+ }
+
+ document.getElementById("modalTitle").textContent="إضافة موعد";
+
+ document.getElementById("modalContent").innerHTML=`
+
+ <form id="appointmentForm">
+
+ <label>المريض</label>
+
+ <select id="ap" required>
+
+ <option value="">اختر المريض</option>
+
+ ${patients.map(p=>
+ `<option value="${p.id}">
+ ${escapeHTML(p.name)}
+ </option>`
+ ).join("")}
+
+ </select>
+
+ <label>التاريخ</label>
+ <input id="ad" type="date" value="${today()}" required>
+
+ <label>الوقت</label>
+ <input id="at" type="time" required>
+
+ <label>السبب</label>
+ <textarea id="ar"></textarea>
+
+ <label>الحالة</label>
+
+ <select id="as">
+ <option>مؤكد</option>
+ <option>انتظر</option>
+ <option>مكتمل</option>
+ <option>ملغى</option>
+ </select>
+
+ <br><br>
+
+ <button class="btn primary">حفظ</button>
+
+ </form>
+ `;
+
+ openModal();
+
+ document
+ .getElementById("appointmentForm")
+ .addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  const {error}=await db
+  .from("appointments")
+  .insert({
+
+   user_id:currentUser.id,
+   patient_id:document.getElementById("ap").value,
+   appointment_date:document.getElementById("ad").value,
+   appointment_time:document.getElementById("at").value,
+   reason:document.getElementById("ar").value.trim(),
+   status:document.getElementById("as").value
+
+  });
+
+  if(error){
+
+   alert(error.message);
+   return;
+
+  }
+
+  closeModal();
+  loadEverything();
+
+ });
+
+});
+
+
+window.removeAppointment=async function(id){
+
+ if(!confirm("حذف الموعد؟"))return;
+
+ const {error}=await db
+ .from("appointments")
+ .delete()
+ .eq("id",id);
+
+ if(error){
+
+  alert(error.message);
+  return;
+
+ }
+
+ loadEverything();
+
+};
+
+
+/* =====================================================
+   MEDICAL RECORDS
+   ===================================================== */
+
+async function loadMedical(){
+
+ const {data,error}=await db
+ .from("medical_records")
+ .select("*,patients(name)")
+ .order("record_date",{ascending:false});
+
+ if(error){
+
+  console.error(error);
+  return;
+
+ }
+
+ const body=document.getElementById("medicalBody");
+
+ if(!data?.length){
+
+  body.innerHTML=
+  `<tr><td colspan="6">لا توجد سجلات</td></tr>`;
+
+  return;
+
+ }
+
+ body.innerHTML=data.map(r=>`
+
+ <tr>
+
+ <td>${escapeHTML(r.patients?.name)}</td>
+ <td>${escapeHTML(r.record_date)}</td>
+ <td>${escapeHTML(r.symptoms)}</td>
+ <td>${escapeHTML(r.diagnosis)}</td>
+ <td>${escapeHTML(r.treatment)}</td>
+
+ <td>
+
+ <button class="btn danger"
+ onclick="removeMedical('${r.id}')">
+ حذف
+ </button>
+
+ </td>
+
+ </tr>
+
+ `).join("");
+
+}
+
+
+document
+.getElementById("newMedical")
+.addEventListener("click",()=>{
+
+ if(!patients.length){
+
+  alert("أضف مريضًا أولًا.");
+  return;
+
+ }
+
+ document.getElementById("modalTitle").textContent=
+ "إضافة سجل طبي";
+
+ document.getElementById("modalContent").innerHTML=`
+
+ <form id="medicalForm">
+
+ <label>المريض</label>
+
+ <select id="mp" required>
+
+ <option value="">اختر المريض</option>
+
+ ${patients.map(p=>
+ `<option value="${p.id}">
+ ${escapeHTML(p.name)}
+ </option>`
+ ).join("")}
+
+ </select>
+
+ <label>التاريخ</label>
+ <input id="md" type="date" value="${today()}">
+
+ <label>الأعراض</label>
+ <textarea id="ms"></textarea>
+
+ <label>التشخيص</label>
+ <textarea id="mdiag"></textarea>
+
+ <label>العلاج</label>
+ <textarea id="mt"></textarea>
+
+ <label>ضغط الدم</label>
+ <input id="mpress">
+
+ <label>الوزن</label>
+ <input id="mweight" type="number">
+
+ <label>درجة الحرارة</label>
+ <input id="mtemp" type="number">
+
+ <br>
+
+ <button class="btn primary">حفظ</button>
+
+ </form>
+ `;
+
+ openModal();
+
+ document
+ .getElementById("medicalForm")
+ .addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  const {error}=await db
+  .from("medical_records")
+  .insert({
+
+   user_id:currentUser.id,
+   patient_id:document.getElementById("mp").value,
+   record_date:document.getElementById("md").value,
+   symptoms:document.getElementById("ms").value.trim(),
+   diagnosis:document.getElementById("mdiag").value.trim(),
+   treatment:document.getElementById("mt").value.trim(),
+   pressure:document.getElementById("mpress").value.trim(),
+   weight:document.getElementById("mweight").value||null,
+   temperature:document.getElementById("mtemp").value||null
+
+  });
+
+  if(error){
+
+   alert(error.message);
+   return;
+
+  }
+
+  closeModal();
+  loadEverything();
+
+ });
+
+});
+
+
+window.removeMedical=async function(id){
+
+ if(!confirm("حذف السجل الطبي؟"))return;
+
+ const {error}=await db
+ .from("medical_records")
+ .delete()
+ .eq("id",id);
+
+ if(error){
+
+  alert(error.message);
+  return;
+
+ }
+
+ loadEverything();
+
+};
+
+
+/* =====================================================
+   PRESCRIPTIONS
+   ===================================================== */
+
+async function loadPrescriptions(){
+
+ const {data,error}=await db
+ .from("prescriptions")
+ .select("*,patients(name)")
+ .order("prescription_date",{ascending:false});
+
+ if(error){
+
+  console.error(error);
+  return;
+
+ }
+
+ const body=
+ document.getElementById("prescriptionsBody");
+
+ if(!data?.length){
+
+  body.innerHTML=
+  `<tr><td colspan="5">لا توجد وصفات</td></tr>`;
+
+  return;
+
+ }
+
+ body.innerHTML=data.map(p=>`
+
+ <tr>
+
+ <td>${escapeHTML(p.patients?.name)}</td>
+ <td>${escapeHTML(p.prescription_date)}</td>
+ <td>${escapeHTML(p.medicines)}</td>
+ <td>${escapeHTML(p.notes)}</td>
+
+ <td>
+
+ <button class="btn danger"
+ onclick="removePrescription('${p.id}')">
+ حذف
+ </button>
+
+ </td>
+
+ </tr>
+
+ `).join("");
+
+}
+
+
+document
+.getElementById("newPrescription")
+.addEventListener("click",()=>{
+
+ if(!patients.length){
+
+  alert("أضف مريضًا أولًا.");
+  return;
+
+ }
+
+ document.getElementById("modalTitle").textContent=
+ "إضافة وصفة";
+
+ document.getElementById("modalContent").innerHTML=`
+
+ <form id="prescriptionForm">
+
+ <label>المريض</label>
+
+ <select id="rp" required>
+
+ <option value="">اختر المريض</option>
+
+ ${patients.map(p=>
+ `<option value="${p.id}">
+ ${escapeHTML(p.name)}
+ </option>`
+ ).join("")}
+
+ </select>
+
+ <label>التاريخ</label>
+ <input id="rd" type="date" value="${today()}">
+
+ <label>الأدوية</label>
+
+ <textarea id="rm" required
+ placeholder="اسم الدواء - الجرعة - المدة"></textarea>
+
+ <label>الملاحظات</label>
+ <textarea id="rn"></textarea>
+
+ <br>
+
+ <button class="btn primary">حفظ</button>
+
+ </form>
+ `;
+
+ openModal();
+
+ document
+ .getElementById("prescriptionForm")
+ .addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  const {error}=await db
+  .from("prescriptions")
+  .insert({
+
+   user_id:currentUser.id,
+   patient_id:document.getElementById("rp").value,
+   prescription_date:document.getElementById("rd").value,
+   medicines:document.getElementById("rm").value.trim(),
+   notes:document.getElementById("rn").value.trim()
+
+  });
+
+  if(error){
+
+   alert(error.message);
+   return;
+
+  }
+
+  closeModal();
+  loadEverything();
+
+ });
+
+});
+
+
+window.removePrescription=async function(id){
+
+ if(!confirm("حذف الوصفة؟"))return;
+
+ const {error}=await db
+ .from("prescriptions")
+ .delete()
+ .eq("id",id);
+
+ if(error){
+
+  alert(error.message);
+  return;
+
+ }
+
+ loadEverything();
+
+};
+
+
+/* =====================================================
+   INVOICES
+   ===================================================== */
+
+async function loadInvoices(){
+
+ const {data,error}=await db
+ .from("invoices")
+ .select("*,patients(name)")
+ .order("invoice_date",{ascending:false});
+
+ if(error){
+
+  console.error(error);
+  return;
+
+ }
+
+ const body=
+ document.getElementById("invoicesBody");
+
+ if(!data?.length){
+
+  body.innerHTML=
+  `<tr><td colspan="7">لا توجد فواتير</td></tr>`;
+
+  return;
+
+ }
+
+ body.innerHTML=data.map(i=>`
+
+ <tr>
+
+ <td>${escapeHTML(i.invoice_number)}</td>
+ <td>${escapeHTML(i.patients?.name)}</td>
+ <td>${escapeHTML(i.invoice_date)}</td>
+ <td>${escapeHTML(i.service)}</td>
+ <td>${escapeHTML(i.amount)}</td>
+ <td>${escapeHTML(i.status)}</td>
+
+ <td>
+
+ <button class="btn danger"
+ onclick="removeInvoice('${i.id}')">
+ حذف
+ </button>
+
+ </td>
+
+ </tr>
+
+ `).join("");
+
+}
+
+
+document
+.getElementById("newInvoice")
+.addEventListener("click",()=>{
+
+ if(!patients.length){
+
+  alert("أضف مريضًا أولًا.");
+  return;
+
+ }
+
+ document.getElementById("modalTitle").textContent=
+ "إضافة فاتورة";
+
+ document.getElementById("modalContent").innerHTML=`
+
+ <form id="invoiceForm">
+
+ <label>رقم الفاتورة</label>
+ <input id="in" value="INV-${Date.now()}" required>
+
+ <label>المريض</label>
+
+ <select id="ip" required>
+
+ <option value="">اختر المريض</option>
+
+ ${patients.map(p=>
+ `<option value="${p.id}">
+ ${escapeHTML(p.name)}
+ </option>`
+ ).join("")}
+
+ </select>
+
+ <label>التاريخ</label>
+ <input id="idate" type="date" value="${today()}">
+
+ <label>الخدمة</label>
+ <input id="iservice" required>
+
+ <label>المبلغ</label>
+ <input id="iamount" type="number" step="0.01" min="0" required>
+
+ <label>الحالة</label>
+
+ <select id="istatus">
+ <option>مدفوعة</option>
+ <option>غير مدفوعة</option>
+ <option>جزئي</option>
+ </select>
+
+ <br>
+
+ <button class="btn primary">حفظ</button>
+
+ </form>
+ `;
+
+ openModal();
+
+ document
+ .getElementById("invoiceForm")
+ .addEventListener("submit",async function(e){
+
+  e.preventDefault();
+
+  const {error}=await db
+  .from("invoices")
+  .insert({
+
+   user_id:currentUser.id,
+   patient_id:document.getElementById("ip").value,
+   invoice_number:document.getElementById("in").value.trim(),
+   invoice_date:document.getElementById("idate").value,
+   service:document.getElementById("iservice").value.trim(),
+   amount:document.getElementById("iamount").value,
+   status:document.getElementById("istatus").value
+
+  });
+
+  if(error){
+
+   alert(error.message);
+   return;
+
+  }
+
+  closeModal();
+  loadEverything();
+
+ });
+
+});
+
+
+window.removeInvoice=async function(id){
+
+ if(!confirm("حذف الفاتورة؟"))return;
+
+ const {error}=await db
+ .from("invoices")
+ .delete()
+ .eq("id",id);
+
+ if(error){
+
+  alert(error.message);
+  return;
+
+ }
+
+ loadEverything();
+
+};
+
+
+/* =====================================================
+   COUNTERS
+   ===================================================== */
+
+async function updateCounts(){
+
+ const tables=[
+  ["patients","patientsCount"],
+  ["appointments","appointmentsCount"],
+  ["medical_records","medicalCount"],
+  ["invoices","invoicesCount"]
+ ];
+
+ for(const [table,element] of tables){
+
+  const {count,error}=await db
+   .from(table)
+   .select("*",{count:"exact",head:true});
+
+  if(!error){
+
+   document
+    .getElementById(element)
+    .textContent=count||0;
+
+  }
+
+ }
+
+}
+
+
+/* =====================================================
+   MODAL
+   ===================================================== */
+
+function openModal(){
+
+ document
+  .getElementById("modal")
+  .classList.remove("hidden");
+
+}
+
+function closeModal(){
+
+ document
+  .getElementById("modal")
+  .classList.add("hidden");
+
+ document
+  .getElementById("modalContent")
+  .innerHTML="";
+
+}
+
+document
+.getElementById("closeModal")
+.addEventListener("click",closeModal);
+
+document
+.getElementById("modal")
+.addEventListener("click",e=>{
+
+ if(e.target.id==="modal")
+  closeModal();
+
+});
+
+
+/* =====================================================
+   START
+   ===================================================== */
+
+start();
+
+</script>
+
+</body>
+</html>
